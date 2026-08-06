@@ -1,9 +1,6 @@
 name: Build Watchface
 
-on:
-  push:
-    paths:
-      - 'input.zip'
+on: [push]
 
 jobs:
   build:
@@ -11,11 +8,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build
+      - name: Find and Compile
+        shell: powershell
         run: |
-          Expand-Archive -Path input.zip -DestinationPath .\source -Force
+          # Автоматически ищем любой zip-файл в корне репозитория
+          $zipFile = Get-ChildItem -Path . -Filter *.zip | Select-Object -First 1
+          if (-not $zipFile) {
+            Write-Host "No zip file found, skipping build."
+            exit 0
+          }
+          Write-Host "Found archive: $($zipFile.Name)"
+          
+          # Распаковываем найденный архив
+          Expand-Archive -Path $zipFile.FullName -DestinationPath .\source -Force
+          
+          # Компилируем
           .\compile.exe .\source
-          Get-ChildItem -Path . -Filter *.bin -Recurse | Select-Object -First 1 | Copy-Item -Destination .\result.bin
+          
+          # Ищем готовый .bin файл
+          $binFile = Get-ChildItem -Path . -Filter *.bin -Recurse | Select-Object -First 1
+          if (-not $binFile) {
+            Write-Error "Compilation failed, no .bin file found!"
+            exit 1
+          }
+          Copy-Item -Path $binFile.FullName -Destination .\result.bin
+          Write-Host "Done! Prepared result.bin"
 
       - uses: actions/upload-artifact@v4
         with:
