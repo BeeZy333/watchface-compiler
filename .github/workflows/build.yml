@@ -14,14 +14,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Unpack and Compile
+        shell: powershell
         run: |
           Expand-Archive -Path input.zip -DestinationPath .\source -Force
           .\compile.exe .\source
-          Get-ChildItem -Path . -Filter *.bin -Recurse | Copy-Item -Destination .\result.bin
+          Get-ChildItem -Path . -Filter *.bin -Recurse | Select-Object -First 1 | Copy-Item -Destination .\result.bin
 
       - name: Save Compiled BIN
         uses: actions/upload-artifact@v4
         with:
           name: watchface-bin
-          path: result
-          .bin
+          path: resul
+          t.bin
