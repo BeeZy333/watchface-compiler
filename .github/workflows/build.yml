@@ -1,4 +1,4 @@
-name: Build HyperOS Watchface
+name: Build Watchface
 
 on:
   push:
@@ -8,21 +8,16 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Unpack and Compile
-        shell: powershell
+      - name: Build
         run: |
           Expand-Archive -Path input.zip -DestinationPath .\source -Force
           .\compile.exe .\source
           Get-ChildItem -Path . -Filter *.bin -Recurse | Select-Object -First 1 | Copy-Item -Destination .\result.bin
 
-      - name: Save Compiled BIN
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: watchface-bin
-          path: resul
-          t.bin
+          path: result.bin
